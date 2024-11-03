@@ -1,33 +1,29 @@
-# 每天6:30执行
-# UTC 时间，北京时间需要 UTC+8
-name: Start
+name: Run Python Script Daily
 
 on:
-   workflow_dispatch:
-   schedule:
-       - cron: '10 0 * * *'
+  workflow_dispatch:  # 手动触发工作流
 
 jobs:
-  TiebaSignIn:
-
+  run-script:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
-    - name: Cache local Maven repository
-      uses: actions/cache@v2
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
-    - name: Build with Maven
-      env:
-        BDUSS: ${{ secrets.BDUSS }}
-        SCKEY: ${{ secrets.SCKEY }}
-      run: |
-        mvn compile exec:java -Dexec.mainClass="top.srcrs.Run" -Dexec.args="${BDUSS} ${SCKEY}"
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # 你可以指定你需要的 Python 版本
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # 如果你有依赖，确保你在仓库中有这个文件
+
+      - name: Run script
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          URL: ${{ secrets.URL }}
+        run: |
+          python main.py $USERNAME $PASSWORD $URL
